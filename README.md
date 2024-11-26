@@ -11,5 +11,5 @@ Link do Repositório: https://github.com/AlanRok/CalculadoraCalculo2.git
 4. > Baixar as bibliotecas usando o comando 'pip install {nome_da_biblioteca}'
 
 # Como usar
-1. > Primeiro digite a função que deseja calcular, lembrando que deve ter espaçamento entre os números e as operações(Ex: x² + y²), as potencias devem ser inseridas usando o AltGr(Ex: x²) e a operação de multiplicação é usando "*" (Ex: 5*6)
+1. > Primeiro digite a função que deseja calcular, lembrando que deve ter espaçamento entre os números e as operações(Ex: x² + y²), as potencias podem ser inseridas usando o AltGr, '^' e '**' (Ex: x², x^2, x**2) e a operação de multiplicação é usando "*" (Ex: 5*6)
 2. > Após inserir a função, insira as variáveis usadas e com virgula entre elas(Ex: a,b,c)

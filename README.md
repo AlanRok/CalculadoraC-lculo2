@@ -6,7 +6,7 @@ Link do Repositório: https://github.com/AlanRok/CalculadoraCalculo2.git
 
 # Pré-Requisitos
 1. > Armazenamento cheio pode resultar em erros.
-2. > Deve possuir no mínimo 1gb de ram para rodar.
+2. > Deve possuir no mínimo 4gb de ram para rodar.
 3. > Ter o python instalado na versão mais recente
 4. > Baixar as bibliotecas usando o comando 'pip install {nome_da_biblioteca}'
 

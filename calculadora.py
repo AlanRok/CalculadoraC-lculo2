@@ -24,38 +24,30 @@ def converter_potencias(expressao):
     expressao = re.sub(r'(\w)\^(\d+)', r'\1**\2', expressao)
     return expressao
 
-def calcular_dominio_imagem(expressao, variaveis):
-    """
-    Calcula o domínio e a imagem da função em um intervalo numérico definido.
-    """
+def solicitar_fixar_variavel(variaveis):
+    var_fixada = input(f"Escolha uma variável para fixar ({', '.join(map(str, variaveis))}): ").strip()
+    if var_fixada not in map(str, variaveis):
+        raise ValueError("Variável inválida. Certifique-se de escolher uma das variáveis disponíveis.")
+    valor_fixado = float(input(f"Digite o valor para {var_fixada}: "))
+    return var_fixada, valor_fixado
+
+def calcular_dominio_imagem(expressao, variaveis, var_fixada=None, valor_fixado=None):
     try:
-        # Definir intervalos para cálculo numérico
         intervalo = np.linspace(-10, 10, 500)
         valores = []
 
         if len(variaveis) == 1:
-            # Para funções de uma variável
             var = variaveis[0]
             f_lambdified = sy.lambdify(var, expressao, modules=['numpy'])
             valores = f_lambdified(intervalo)
 
         elif len(variaveis) == 2:
-            # Para funções de duas variáveis
             var1, var2 = variaveis
             f_lambdified = sy.lambdify((var1, var2), expressao, modules=['numpy'])
             x, y = np.meshgrid(intervalo, intervalo)
             valores = f_lambdified(x, y)
 
-        elif len(variaveis) == 3:
-            # Para funções de três variáveis, fixar uma variável
-            print("Função possui três variáveis. Será necessário fixar um valor para uma delas.")
-            var1, var2, var3 = variaveis
-            var_fixada = input(f"Escolha uma variável para fixar ({var1}, {var2}, {var3}): ").strip()
-            
-            if var_fixada not in [str(var1), str(var2), str(var3)]:
-                return "Erro: Variável fixada inválida.", None
-            
-            valor_fixado = float(input(f"Digite o valor para {var_fixada}: "))
+        elif len(variaveis) == 3 and var_fixada:
             vars_restantes = [v for v in variaveis if str(v) != var_fixada]
             f_lambdified = sy.lambdify((*vars_restantes, sy.symbols(var_fixada)), expressao, modules=['numpy'])
             x, y = np.meshgrid(intervalo, intervalo)
@@ -64,7 +56,6 @@ def calcular_dominio_imagem(expressao, variaveis):
         else:
             return "Erro: Domínio/imagem não suportados para mais de 3 variáveis.", None
 
-        # Determinar o intervalo do domínio e imagem
         dominio = f"{variaveis} ∈ ({intervalo.min()}, {intervalo.max()})"
         imagem = f"f({', '.join(map(str, variaveis))}) ∈ ({np.nanmin(valores)}, {np.nanmax(valores)})"
         return dominio, imagem
@@ -72,12 +63,11 @@ def calcular_dominio_imagem(expressao, variaveis):
     except Exception as e:
         return f"Erro ao calcular domínio/imagem: {e}", None
 
-def gerar_grafico(expressao, variaveis):
+def gerar_grafico(expressao, variaveis, var_fixada=None, valor_fixado=None):
     try:
-        if len(variaveis) == 1:  # Gráfico 2D (uma variável)
+        if len(variaveis) == 1:
             var = variaveis[0]
             f_lambdified = sy.lambdify(var, expressao, modules=['numpy'])
-            
             x = np.linspace(-10, 10, 500)
             y = f_lambdified(x)
 
@@ -90,13 +80,10 @@ def gerar_grafico(expressao, variaveis):
             plt.grid()
             plt.show()
 
-        elif len(variaveis) == 2:  # Gráfico 3D (duas variáveis)
+        elif len(variaveis) == 2:
             var1, var2 = variaveis
             f_lambdified = sy.lambdify((var1, var2), expressao, modules=['numpy'])
-
-            x = np.linspace(-10, 10, 100)
-            y = np.linspace(-10, 10, 100)
-            x, y = np.meshgrid(x, y)
+            x, y = np.meshgrid(np.linspace(-10, 10, 100), np.linspace(-10, 10, 100))
             z = f_lambdified(x, y)
 
             fig = plt.figure(figsize=(10, 8))
@@ -108,28 +95,12 @@ def gerar_grafico(expressao, variaveis):
             ax.set_zlabel("f(x, y)")
             plt.show()
 
-        elif len(variaveis) == 3:  # Gráfico para três variáveis
-            print("Função possui três variáveis. Será necessário fixar um valor para uma delas.")
-            
-            # Permitir ao usuário escolher a variável a ser fixada
-            var1, var2, var3 = variaveis
-            var_fixada = input(f"Escolha uma variável para fixar ({var1}, {var2}, {var3}): ").strip()
-            
-            if var_fixada not in [str(var1), str(var2), str(var3)]:
-                print("Variável inválida! Certifique-se de escolher uma das variáveis disponíveis.")
-                return
-            
-            valor_fixado = float(input(f"Digite o valor para {var_fixada}: "))
-
-            # Determinar as variáveis restantes
+        elif len(variaveis) == 3 and var_fixada:
             vars_restantes = [v for v in variaveis if str(v) != var_fixada]
             var1, var2 = vars_restantes
-            
-            f_lambdified = sy.lambdify((var1, var2, sy.symbols(var_fixada)), expressao, modules=['numpy'])
+            f_lambdified = sy.lambdify((*vars_restantes, sy.symbols(var_fixada)), expressao, modules=['numpy'])
 
-            x = np.linspace(-10, 10, 100)
-            y = np.linspace(-10, 10, 100)
-            x, y = np.meshgrid(x, y)
+            x, y = np.meshgrid(np.linspace(-10, 10, 100), np.linspace(-10, 10, 100))
             z = f_lambdified(x, y, valor_fixado)
 
             fig = plt.figure(figsize=(10, 8))
@@ -140,14 +111,8 @@ def gerar_grafico(expressao, variaveis):
             ax.set_ylabel(str(var2))
             ax.set_zlabel(f"f({str(var1)}, {str(var2)}, {valor_fixado})")
             plt.show()
-        else:
-            print("Não é possível gerar gráficos para funções com mais de 3 variáveis.")
-
     except Exception as e:
         print(f"Erro ao gerar gráfico: {e}")
-
-
-
 
 
 # Fluxo principal do programa
@@ -156,6 +121,12 @@ variaveis = input("Digite as variáveis para derivar separadas por vírgula (ex:
 ordem_derivada = int(input("Digite a ordem da derivada (ex: 1, 2, 3): "))
 
 variaveis_derivacao = [sy.symbols(var.strip()) for var in variaveis.split(",")]
+
+if len(variaveis_derivacao) == 3:
+    var_fixada, valor_fixado = solicitar_fixar_variavel(variaveis_derivacao)
+else:
+    var_fixada, valor_fixado = None, None
+
 resultado = derivar_funcao(funcao, *variaveis_derivacao, ordem=ordem_derivada)
 
 if isinstance(resultado, tuple):
@@ -163,12 +134,10 @@ if isinstance(resultado, tuple):
     for var, derivada in derivadas.items():
         print(f"Derivada de ordem {ordem_derivada} de f em relação a {var}: {derivada}")
 
-    # Calcular domínio e imagem
-    dominio, imagem = calcular_dominio_imagem(expressao, variaveis_derivacao)
+    dominio, imagem = calcular_dominio_imagem(expressao, variaveis_derivacao, var_fixada, valor_fixado)
     print(f"Domínio: {dominio}")
     print(f"Imagem: {imagem}")
 
-    # Gerar o gráfico
-    gerar_grafico(expressao, variaveis_derivacao)
+    gerar_grafico(expressao, variaveis_derivacao, var_fixada, valor_fixado)
 else:
     print(resultado)
